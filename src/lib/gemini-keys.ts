@@ -1,9 +1,16 @@
 import { Redis } from "@upstash/redis";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-});
+let redisInstance: Redis | null = null;
+
+function getRedis() {
+  if (!redisInstance && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redisInstance = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  }
+  return redisInstance;
+}
 
 export async function getNextGeminiKey(): Promise<string> {
   // Dynamically load all available Gemini keys from environment variables
@@ -15,6 +22,9 @@ export async function getNextGeminiKey(): Promise<string> {
   }
 
   try {
+    const redis = getRedis();
+    if (!redis) throw new Error("Redis not configured");
+    
     // Atomically increment the global counter in Redis
     const count = await redis.incr("gemini_key_rotation_counter");
     
