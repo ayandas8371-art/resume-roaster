@@ -224,7 +224,7 @@ export function UploadZone({ usage }: UploadZoneProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            {...getRootProps()}
+            {...(getRootProps() as any)}
             className={`group relative cursor-pointer overflow-hidden rounded-[20px] border-2 border-dashed p-6 sm:p-12 text-center transition-all duration-300 ${
               isDragActive 
                 ? "border-purple-500 bg-purple-500/5" 

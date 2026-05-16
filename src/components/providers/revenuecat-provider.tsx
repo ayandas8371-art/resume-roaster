@@ -22,6 +22,7 @@ interface PlanState {
 
 interface RevenueCatContextType extends PlanState {
   showPaywall: () => Promise<void>;
+  showCustomerCenter: () => Promise<void>;
   refreshPlan: () => Promise<void>;
 }
 
@@ -128,8 +129,8 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         purchasesRef.current = instance;
 
         // Listen for real-time entitlement updates (fires after successful purchase)
-        if (typeof instance.addCustomerInfoUpdateListener === "function") {
-          instance.addCustomerInfoUpdateListener(async (info: any) => {
+        if (typeof (instance as any).addCustomerInfoUpdateListener === "function") {
+          (instance as any).addCustomerInfoUpdateListener(async (info: any) => {
             const plan = getPlanFromEntitlements(info.entitlements.active);
             setState(prev => ({
               ...prev,
@@ -215,9 +216,29 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     }
   }, [user, syncPlanToDb]);
+  
+  // ── Show RevenueCat Customer Center (subscription management) ──────────────
+  const showCustomerCenter = useCallback(async () => {
+    if (!purchasesRef.current) {
+      console.error("[RC] SDK not initialized. Cannot show customer center.");
+      return;
+    }
+
+    try {
+      const { Purchases } = await import("@revenuecat/purchases-js");
+      const instance = Purchases.getSharedInstance();
+      
+      // opens the RevenueCat customer center for managing subscriptions
+      await (instance as any).presentCustomerCenter({
+        htmlTarget: null as any,
+      });
+    } catch (e: any) {
+      console.error("[RC] Customer Center error:", e);
+    }
+  }, []);
 
   return (
-    <RevenueCatContext.Provider value={{ ...state, showPaywall, refreshPlan }}>
+    <RevenueCatContext.Provider value={{ ...state, showPaywall, showCustomerCenter, refreshPlan }}>
       {children}
     </RevenueCatContext.Provider>
   );

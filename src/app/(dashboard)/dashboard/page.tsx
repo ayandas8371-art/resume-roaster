@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const usage = userId ? await getUserUsage(userId) : null;
 
   return (
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
         {usage && (
           <div className="hidden md:flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 backdrop-blur-sm">
             <TrendingUp className="h-4 w-4 text-orange-400" />
-            <span className="text-sm font-bold text-white">{usage.roastsRemaining ?? 0} roasts remaining</span>
+            <span className="text-sm font-bold text-white">{usage.roasts_remaining ?? 0} roasts remaining</span>
           </div>
         )}
       </div>

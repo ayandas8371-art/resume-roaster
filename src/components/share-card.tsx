@@ -13,6 +13,13 @@ import {
 import { useState, useRef } from "react";
 import { toPng } from "html-to-image";
 
+interface ShareCardProps {
+  score: number;
+  headline: string;
+  bestBurn?: string;
+  onClose: () => void;
+}
+
 export function ShareCard({ score, headline, bestBurn, onClose }: ShareCardProps) {
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);

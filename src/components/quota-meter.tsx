@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Progress } from "@/components/ui/progress";
 import { Plan, PLAN_CONFIGS } from "@/types";
 import { Zap, Calendar, ArrowRight, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -10,45 +9,49 @@ import { formatDate } from "@/utils/format";
 import { useRevenueCat } from "@/components/providers/revenuecat-provider";
 
 interface UsageData {
-  used: number;
-  quota: number;
-  remaining: number;
-  resetDate: string;
+  quota_used: number;
+  quota_limit: number;
+  roasts_remaining: number;
+  quota_reset_at?: string;
+  resetDate?: string;
   plan: string;
 }
 
-export function QuotaMeter() {
-  const [usage, setUsage] = useState<UsageData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function QuotaMeter({ 
+  usage: externalUsage, 
+  isLoading: externalLoading 
+}: { 
+  usage?: any; 
+  isLoading?: boolean; 
+} = {}) {
+  const [internalUsage, setInternalUsage] = useState<UsageData | null>(null);
+  const [internalLoading, setInternalLoading] = useState(true);
   const { showPaywall } = useRevenueCat();
 
+  const usage = externalUsage !== undefined ? externalUsage : internalUsage;
+  const isLoading = externalLoading !== undefined ? externalLoading : internalLoading;
+
   useEffect(() => {
+    // Only fetch internally if no external usage is provided
+    if (externalUsage !== undefined) return;
+
     const fetchUsage = async () => {
       try {
-        console.log("[DEBUG] Fetching usage for current session...");
         const res = await fetch("/api/usage");
         const data = await res.json();
-        
-        // This is the key log we need to see
-        console.log("[DEBUG] Current Dashboard Identity:", data.userId || "Unknown");
-        
-        setUsage(data);
-        
-        // Dispatch custom event so UploadZone can listen for quota changes
+        setInternalUsage(data);
         window.dispatchEvent(new CustomEvent('quota-updated', { detail: data }));
       } catch (err) {
         console.error("Failed to fetch quota:", err);
       } finally {
-        setIsLoading(false);
+        setInternalLoading(false);
       }
     };
 
     fetchUsage();
-    
-    // Refresh quota when a roast is generated
     window.addEventListener('refresh-quota', fetchUsage);
     return () => window.removeEventListener('refresh-quota', fetchUsage);
-  }, []);
+  }, [externalUsage]);
 
   if (isLoading) {
     return (
@@ -60,12 +63,12 @@ export function QuotaMeter() {
 
   if (!usage) return null;
 
-  const percentage = (usage.used / usage.quota) * 100;
+  const percentage = usage.quota_limit > 0 ? (usage.quota_used / usage.quota_limit) * 100 : 0;
   const isFree = usage.plan === "free";
   
   // Color logic: green < 50%, amber 50-90%, red 90%+
   const getBarColor = () => {
-    if (usage.remaining === 0) return "bg-red-500";
+    if (usage.roasts_remaining === 0) return "bg-red-500";
     if (percentage < 50) return "bg-emerald-500";
     if (percentage < 90) return "bg-amber-500";
     return "bg-red-500";
@@ -76,7 +79,7 @@ export function QuotaMeter() {
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-white">
-            {usage.used} of {usage.quota} reports used this month
+            {usage.quota_used} of {usage.quota_limit} reports used this month
           </p>
         </div>
         
@@ -91,10 +94,11 @@ export function QuotaMeter() {
         
         <div className="flex items-center justify-between pt-1">
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
-            {usage.remaining === 0
+            {usage.roasts_remaining === 0
               ? (() => {
-                  if (!usage.resetDate) return "Quota exhausted";
-                  const resetDate = new Date(usage.resetDate);
+                  const resetVal = usage.quota_reset_at || usage.resetDate;
+                  if (!resetVal) return "Quota exhausted";
+                  const resetDate = new Date(resetVal);
                   const now = new Date();
                   const daysUntilReset = Math.ceil(
                     (resetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
@@ -108,13 +112,14 @@ export function QuotaMeter() {
                     : `Resets in ${daysUntilReset} day${daysUntilReset !== 1 ? "s" : ""} · ${dateStr}`;
                 })()
               : (() => {
-                  if (!usage.resetDate) return `${usage.remaining} remaining`;
-                  const resetDate = new Date(usage.resetDate);
+                  const resetVal = usage.quota_reset_at || usage.resetDate;
+                  if (!resetVal) return `${usage.roasts_remaining} remaining`;
+                  const resetDate = new Date(resetVal);
                   const dateStr = resetDate.toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                   });
-                  return `${usage.remaining} remaining · resets ${dateStr}`;
+                  return `${usage.roasts_remaining} remaining · resets ${dateStr}`;
                 })()
             }
           </p>
