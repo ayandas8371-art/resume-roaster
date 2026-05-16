@@ -11,6 +11,7 @@ import { z } from "zod";
 import type { RoastResult } from "@/types";
 
 export const maxDuration = 60; // 60 second timeout for AI generation
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {

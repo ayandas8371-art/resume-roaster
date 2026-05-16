@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendInstance: Resend | null = null;
+
+function getResend() {
+  if (!resendInstance && process.env.RESEND_API_KEY) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
+}
 
 export async function sendRoastEmail(to: string, userName: string, score: number, roastText: string) {
   if (!process.env.RESEND_API_KEY) {
@@ -9,6 +16,8 @@ export async function sendRoastEmail(to: string, userName: string, score: number
   }
 
   try {
+    const resend = getResend();
+    if (!resend) return;
     await resend.emails.send({
       from: 'Roast My Resume <onboarding@resend.dev>',
       to: [to],
