@@ -121,10 +121,20 @@ export function UploadZone({ usage }: UploadZoneProps) {
         }),
       });
 
-      const roastData = await roastRes.json();
+      let roastData: any;
+      const roastContentType = roastRes.headers.get("content-type");
+      if (roastContentType && roastContentType.includes("application/json")) {
+        roastData = await roastRes.json();
+      } else {
+        const text = await roastRes.text();
+        console.error("[UploadZone] Non-JSON error response from roast API:", text);
+        throw new Error("AI is taking too long to respond due to high demand. Please try again in a moment!");
+      }
+
       if (!roastRes.ok) {
         throw new Error(roastData.error || "Failed to generate roast. Please try again.");
       }
+
 
       // 3. Success - Save to session/local storage as fallback and redirect
       if (typeof window !== "undefined") {

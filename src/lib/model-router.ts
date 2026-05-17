@@ -57,41 +57,48 @@ const openRouterClient = isRealKey(process.env.OPENROUTER_API_KEY)
 
 export async function callModel(systemPrompt: string, userPrompt: string, plan: string): Promise<string> {
 
-  // 1. Try Gemini 2.5 Flash (Primary Engine for blazing speed)
-  try {
-    const geminiKey = await getNextGeminiKey();
-    if (geminiKey) {
-      console.log(`[ModelRouter] Attempting Gemini 2.5 Flash for Generation...`);
-      const geminiClient = new OpenAI({
-        apiKey: geminiKey,
-        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-      });
-      const response = await geminiClient.chat.completions.create({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.8,
-        max_tokens: 4000,
-        response_format: { type: "json_object" },
-      });
-      const text = response.choices[0]?.message?.content;
-      if (text) {
-        if (isValidJSON(text)) {
-          console.log("[ModelRouter] Gemini succeeded with valid JSON.");
-          return text;
-        } else {
-          console.warn("[ModelRouter] Gemini succeeded but returned invalid JSON. Triaging fallback...");
-          throw new Error("Invalid JSON structure returned by primary engine.");
+  // 1. Try Gemini 2.5 Flash (Primary Engine for blazing speed) with multi-key self-healing rotation
+  const maxGeminiAttempts = 3;
+  for (let gAttempt = 0; gAttempt < maxGeminiAttempts; gAttempt++) {
+    try {
+      const geminiKey = await getNextGeminiKey();
+      if (geminiKey) {
+        console.log(`[ModelRouter] Attempting Gemini 2.5 Flash (Attempt ${gAttempt + 1}/${maxGeminiAttempts})...`);
+        const geminiClient = new OpenAI({
+          apiKey: geminiKey,
+          baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        });
+        const response = await geminiClient.chat.completions.create({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: 0.8,
+          max_tokens: 3000,
+          response_format: { type: "json_object" },
+        });
+        const text = response.choices[0]?.message?.content;
+        if (text) {
+          if (isValidJSON(text)) {
+            console.log("[ModelRouter] Gemini succeeded with valid JSON.");
+            return text;
+          } else {
+            console.warn("[ModelRouter] Gemini succeeded but returned invalid JSON.");
+            throw new Error("Invalid JSON structure returned by primary engine.");
+          }
         }
       }
+    } catch (e) {
+      console.error(`[ModelRouter] Gemini attempt ${gAttempt + 1} failed:`, e instanceof Error ? e.message : e);
+      if (gAttempt < maxGeminiAttempts - 1) {
+        // Pause 100ms before rotating to a fresh key
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
     }
-  } catch (e) {
-    console.error("[ModelRouter] Gemini path failed:", e instanceof Error ? e.message : e);
   }
 
-  // 2. Try NVIDIA NIM (Fallback)
+  // 2. Try NVIDIA NIM (Fallback) with strict 4-second timeout to avoid Vercel 504
   if (nvidiaClient) {
     const models = [
       process.env.NVIDIA_NIM_MODEL || "meta/llama-3.2-3b-instruct",
@@ -100,7 +107,7 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
 
     for (const model of models) {
       try {
-        console.log(`[ModelRouter] Attempting NVIDIA NIM (${model})...`);
+        console.log(`[ModelRouter] Attempting NVIDIA NIM (${model}) with 4s timeout...`);
         const response = await nvidiaClient.chat.completions.create({
           model: model,
           messages: [
@@ -108,9 +115,10 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
             { role: "user", content: userPrompt }
           ],
           temperature: 0.8,
-          max_tokens: 4000,
+          max_tokens: 3000,
           response_format: { type: "json_object" },
-        });
+        }, { timeout: 4000 }); // 4 second timeout guard
+        
         const text = response.choices[0]?.message?.content;
         if (text) {
           if (isValidJSON(text)) {
@@ -127,10 +135,10 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
     }
   }
 
-  // 3. Try OpenRouter (Tertiary Fallback)
+  // 3. Try OpenRouter (Tertiary Fallback) with strict 4-second timeout to avoid Vercel 504
   if (openRouterClient) {
     try {
-      console.log("[ModelRouter] Attempting OpenRouter...");
+      console.log("[ModelRouter] Attempting OpenRouter with 4s timeout...");
       const response = await openRouterClient.chat.completions.create({
         model: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat",
         messages: [
@@ -138,9 +146,10 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
           { role: "user", content: userPrompt }
         ],
         temperature: 0.8,
-        max_tokens: 4000,
+        max_tokens: 3000,
         response_format: { type: "json_object" },
-      });
+      }, { timeout: 4000 }); // 4 second timeout guard
+      
       const text = response.choices[0]?.message?.content;
       if (text) {
         if (isValidJSON(text)) {
@@ -158,3 +167,4 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
 
   throw new Error("No AI providers are currently configured or available. Please add a valid GEMINI_API_KEY_1 to your .env.local file.");
 }
+
