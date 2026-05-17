@@ -47,7 +47,7 @@ export function UploadZone({ usage }: UploadZoneProps) {
     return () => window.removeEventListener('quota-updated', handleUpdate);
   }, []);
 
-  const isLocked = (currentUsage?.remaining ?? (usage?.roasts_remaining ?? 1)) <= 0;
+  const isLocked = (currentUsage?.roasts_remaining ?? currentUsage?.remaining ?? (usage?.roasts_remaining ?? (usage as any)?.remaining ?? 1)) <= 0;
   const isFree = (currentUsage?.plan === "free") || (usage?.plan === "free");
 
   // Rotate loading messages
@@ -144,6 +144,7 @@ export function UploadZone({ usage }: UploadZoneProps) {
         localStorage.setItem("roast_history", JSON.stringify([newEntry, ...localHistory].slice(0, 50)));
       }
       
+      router.refresh();
       const targetId = roastData.id || "latest";
       router.push(`/dashboard/roast/${targetId}`);
     } catch (err) {

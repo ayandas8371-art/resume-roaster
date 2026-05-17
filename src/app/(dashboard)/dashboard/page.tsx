@@ -39,7 +39,7 @@ export default async function DashboardPage() {
         {usage && (
           <div className="hidden md:flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 backdrop-blur-sm">
             <TrendingUp className="h-4 w-4 text-orange-400" />
-            <span className="text-sm font-bold text-white">{usage.roasts_remaining ?? 0} roasts remaining</span>
+            <span className="text-sm font-bold text-white">{(usage.roasts_remaining !== undefined ? usage.roasts_remaining : (usage as any).remaining) ?? 0} roasts remaining</span>
           </div>
         )}
       </div>
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
             <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-600/20 blur-[60px]" />
             <div className="relative">
               <h2 className="mb-4 text-base font-black text-white">Your Plan</h2>
-              <QuotaMeter />
+              <QuotaMeter usage={usage} />
             </div>
           </section>
 

@@ -63,12 +63,21 @@ export function QuotaMeter({
 
   if (!usage) return null;
 
-  const percentage = usage.quota_limit > 0 ? (usage.quota_used / usage.quota_limit) * 100 : 0;
-  const isFree = usage.plan === "free";
+  // Key normalization: robustly align both API-style and DB-style properties to prevent any undefined displays
+  const normalizedUsage = {
+    quota_used: typeof usage.quota_used === "number" ? usage.quota_used : (typeof usage.used === "number" ? usage.used : 0),
+    quota_limit: typeof usage.quota_limit === "number" ? usage.quota_limit : (typeof usage.quota === "number" ? usage.quota : 2),
+    roasts_remaining: typeof usage.roasts_remaining === "number" ? usage.roasts_remaining : (typeof usage.remaining === "number" ? usage.remaining : 2),
+    quota_reset_at: usage.quota_reset_at || usage.resetDate || "",
+    plan: usage.plan || "free",
+  };
+
+  const percentage = normalizedUsage.quota_limit > 0 ? (normalizedUsage.quota_used / normalizedUsage.quota_limit) * 100 : 0;
+  const isFree = normalizedUsage.plan === "free";
   
   // Color logic: green < 50%, amber 50-90%, red 90%+
   const getBarColor = () => {
-    if (usage.roasts_remaining === 0) return "bg-red-500";
+    if (normalizedUsage.roasts_remaining === 0) return "bg-red-500";
     if (percentage < 50) return "bg-emerald-500";
     if (percentage < 90) return "bg-amber-500";
     return "bg-red-500";
@@ -79,7 +88,7 @@ export function QuotaMeter({
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-white">
-            {usage.quota_used} of {usage.quota_limit} reports used this month
+            {normalizedUsage.quota_used} of {normalizedUsage.quota_limit} reports used this month
           </p>
         </div>
         
@@ -94,9 +103,9 @@ export function QuotaMeter({
         
         <div className="flex items-center justify-between pt-1">
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
-            {usage.roasts_remaining === 0
+            {normalizedUsage.roasts_remaining === 0
               ? (() => {
-                  const resetVal = usage.quota_reset_at || usage.resetDate;
+                  const resetVal = normalizedUsage.quota_reset_at;
                   if (!resetVal) return "Quota exhausted";
                   const resetDate = new Date(resetVal);
                   const now = new Date();
@@ -112,14 +121,14 @@ export function QuotaMeter({
                     : `Resets in ${daysUntilReset} day${daysUntilReset !== 1 ? "s" : ""} · ${dateStr}`;
                 })()
               : (() => {
-                  const resetVal = usage.quota_reset_at || usage.resetDate;
-                  if (!resetVal) return `${usage.roasts_remaining} remaining`;
+                  const resetVal = normalizedUsage.quota_reset_at;
+                  if (!resetVal) return `${normalizedUsage.roasts_remaining} remaining`;
                   const resetDate = new Date(resetVal);
                   const dateStr = resetDate.toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                   });
-                  return `${usage.roasts_remaining} remaining · resets ${dateStr}`;
+                  return `${normalizedUsage.roasts_remaining} remaining · resets ${dateStr}`;
                 })()
             }
           </p>
@@ -127,7 +136,7 @@ export function QuotaMeter({
       </div>
 
       {/* Free Plan Warnings & CTA */}
-      {isFree && usage.remaining === 1 && (
+      {isFree && normalizedUsage.roasts_remaining === 1 && (
         <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 border border-amber-500/20">
           <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
           <p className="text-[10px] font-medium text-amber-200/80 leading-relaxed">
@@ -136,7 +145,7 @@ export function QuotaMeter({
         </div>
       )}
 
-      {isFree && usage.remaining === 0 && (
+      {isFree && normalizedUsage.roasts_remaining === 0 && (
         <div className="space-y-4">
           <button
             onClick={showPaywall}
