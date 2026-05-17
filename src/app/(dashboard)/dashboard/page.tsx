@@ -4,6 +4,7 @@ import { QuotaMeter } from "@/components/quota-meter";
 import { RoastHistory } from "@/components/roast-history";
 import { ReferFriendCard } from "@/components/refer-friend-card";
 import { auth } from "@clerk/nextjs/server";
+import { ensureUser } from "@/lib/auth";
 import { getUserUsage } from "@/lib/quota";
 import { Plan, PLAN_CONFIGS } from "@/types";
 import { Zap, History, Sparkles, TrendingUp } from "lucide-react";
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const { userId } = await auth();
+  if (userId) {
+    await ensureUser(userId); // Ensure user is synchronized in database immediately
+  }
   const usage = userId ? await getUserUsage(userId) : null;
 
   return (

@@ -79,6 +79,38 @@ async function autoResetIfExpired(
     };
   }
 
+  // Self-healing: If a free user does not have a reset date, initialize it immediately to 30 days from now
+  if (plan === Plan.FREE && !resetAt) {
+    const newResetAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const updatePayload: Record<string, any> = {
+      quota_reset_at: newResetAt.toISOString(),
+      first_quota_used_at: user.first_quota_used_at || now.toISOString(),
+    };
+    
+    const { error: selfHealError } = await supabase
+      .from("users")
+      .update(updatePayload)
+      .eq("clerk_user_id", user.clerk_user_id);
+      
+    if (selfHealError) {
+      console.warn("[Quota] Self-healing reset_at failed, checking missing columns:", selfHealError.message);
+      if (selfHealError.code === "42703" || selfHealError.message?.includes("first_quota_used_at")) {
+        await supabase
+          .from("users")
+          .update({
+            quota_reset_at: newResetAt.toISOString(),
+          })
+          .eq("clerk_user_id", user.clerk_user_id);
+      }
+    }
+    
+    return {
+      ...user,
+      quota_reset_at: newResetAt.toISOString(),
+      first_quota_used_at: user.first_quota_used_at || now.toISOString(),
+    };
+  }
+
   return user;
 }
 
