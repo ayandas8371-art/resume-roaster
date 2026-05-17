@@ -104,7 +104,7 @@ export default async function DashboardPage() {
             <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-600/20 blur-[60px]" />
             <div className="relative">
               <h2 className="mb-4 text-base font-black text-white">Your Plan</h2>
-              <QuotaMeter />
+              <QuotaMeter usage={usage} />
             </div>
           </section>
 

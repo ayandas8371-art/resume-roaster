@@ -99,15 +99,45 @@ export async function analyzeResumeWithVision(
     let pageImages: string[] = [];
     
     if (fileType.startsWith("image/")) {
-      console.log(`[VisionAnalyzer] Direct image upload detected (${fileType}). Bypassing PDF render.`);
-      pageImages = [fileBuffer.toString("base64")];
+      console.log(`[VisionAnalyzer] Direct image upload detected (${fileType}). Processing and resizing image...`);
+      try {
+        const { loadImage } = require("canvas");
+        const img = await loadImage(fileBuffer);
+        
+        const maxWidth = 1200;
+        const maxHeight = 1600;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+          console.log(`[VisionAnalyzer] Resizing image from ${img.width}x${img.height} to ${width}x${height}`);
+        }
+        
+        const canvas = createCanvas(width, height);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Export to a highly compressed JPEG buffer to keep payload small and fast
+        const optimizedBuffer = canvas.toBuffer("image/jpeg", { quality: 0.85 });
+        pageImages = [optimizedBuffer.toString("base64")];
+      } catch (resizeErr) {
+        console.error("[VisionAnalyzer] Image resizing/loading failed, falling back to raw buffer:", resizeErr);
+        pageImages = [fileBuffer.toString("base64")];
+      }
     } else if (fileType === "application/pdf") {
       pageImages = await pdfToImages(fileBuffer);
     }
 
     if (pageImages.length > 0) {
       // Determine the precise mime type for the Data URI based on what we got
-      const mimeForDataURI = fileType.startsWith("image/") ? fileType : "image/png";
+      let mimeForDataURI = fileType.startsWith("image/") ? fileType : "image/png";
+      // Normalize image/jpg to image/jpeg for strict API standard compliance
+      if (mimeForDataURI === "image/jpg") {
+        mimeForDataURI = "image/jpeg";
+      }
       
       const content = [
         { type: "text", text: ANALYSIS_PROMPT },

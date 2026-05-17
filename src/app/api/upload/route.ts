@@ -32,13 +32,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
         { error: "Only PDF, JPG, PNG, and WebP files are accepted", code: "INVALID_TYPE" },
         { status: 400 }
       );
     }
+
+    // Normalize standard MIME types for robust downstream processing
+    const fileMimeType = file.type === "image/jpg" ? "image/jpeg" : file.type;
 
     // Validate file size (10MB max)
     const MAX_SIZE = 10 * 1024 * 1024;
@@ -73,8 +76,8 @@ export async function POST(request: NextRequest) {
 
     // PRIMARY: Vision-based extraction via Llama 3.2 Vision 90B
     try {
-      console.log(`[Upload] Starting vision-based extraction for type: ${file.type}...`);
-      extractedText = await analyzeResumeWithVision(buffer, "", file.type);
+      console.log(`[Upload] Starting vision-based extraction for type: ${fileMimeType}...`);
+      extractedText = await analyzeResumeWithVision(buffer, "", fileMimeType);
       if (extractedText && extractedText.length > 50) {
         console.log(`[Upload] Vision extraction succeeded: ${extractedText.length} chars`);
       } else {
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Failed to extract text from the PDF. Please make sure it's a valid, text-based PDF document or try a different file.",
+            "Failed to extract text from your resume file. Please ensure it is a valid, high-resolution document (PDF, PNG, JPG, or WebP) and try again.",
           code: "EXTRACTION_FAILED",
         },
         { status: 400 }
