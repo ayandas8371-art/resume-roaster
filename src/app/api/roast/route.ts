@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     // Generate roast via Multi-Model Router (Self-healing structure)
     let roast: RoastResult | null = null;
     let lastError: Error | null = null;
-    const maxRetries = 1;
+    const maxRetries = 0; // No outer retries since callModel has 5 highly resilient internal attempts (3x Gemini, NIM, OpenRouter)
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
