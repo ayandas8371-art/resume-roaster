@@ -42,14 +42,30 @@ async function autoResetIfExpired(
     // Roll forward: new window starts NOW, expires 30 days from now
     const newResetAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    await supabase
+    const updatePayload: Record<string, any> = {
+      quota_used: 0,
+      quota_reset_at: newResetAt.toISOString(),
+      first_quota_used_at: now.toISOString(), // new window start
+    };
+
+    const { error: resetError } = await supabase
       .from("users")
-      .update({
-        quota_used: 0,
-        quota_reset_at: newResetAt.toISOString(),
-        first_quota_used_at: now.toISOString(), // new window start
-      })
+      .update(updatePayload)
       .eq("clerk_user_id", user.clerk_user_id);
+
+    if (resetError) {
+      console.warn("[Quota] Auto-reset failed, checking missing columns:", resetError.message);
+      if (resetError.code === "42703" || resetError.message?.includes("first_quota_used_at")) {
+        // Fallback if migration hasn't been run
+        await supabase
+          .from("users")
+          .update({
+            quota_used: 0,
+            quota_reset_at: newResetAt.toISOString(),
+          })
+          .eq("clerk_user_id", user.clerk_user_id);
+      }
+    }
 
     console.log(
       `[Quota] Free user ${user.clerk_user_id} quota auto-reset. Next reset: ${newResetAt.toISOString()}`
@@ -168,11 +184,35 @@ export async function decrementQuota(clerkUserId: string): Promise<boolean> {
   }
 
   // Atomic update: only succeeds if quota_used hasn't changed (prevents race conditions)
-  await supabase
+  const { error: updateError } = await supabase
     .from("users")
     .update(updatePayload)
     .eq("clerk_user_id", clerkUserId)
     .eq("quota_used", quota_used); // optimistic lock
+
+  if (updateError) {
+    console.error("[Quota] Decrement attempt failed:", updateError.message);
+    if (updateError.code === "42703" || updateError.message?.includes("first_quota_used_at")) {
+      console.warn("[Quota] 'first_quota_used_at' column is missing in DB. Falling back to core columns...");
+      const fallbackPayload = {
+        quota_used: updatePayload.quota_used,
+        quota_reset_at: updatePayload.quota_reset_at
+      };
+      
+      const { error: fallbackError } = await supabase
+        .from("users")
+        .update(fallbackPayload)
+        .eq("clerk_user_id", clerkUserId)
+        .eq("quota_used", quota_used);
+
+      if (fallbackError) {
+        console.error("[Quota] Fallback decrement failed:", fallbackError.message);
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
 
   return true;
 }
@@ -203,20 +243,39 @@ export async function updateUserPlan(
     quota_reset_at = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
   }
 
-  await supabase
+  const updatePayload = {
+    plan: newPlan,
+    quota_limit: planConfig.limit,
+    quota_used: 0,
+    quota_reset_at,
+    subscription_started_at:
+      newPlan !== Plan.FREE
+        ? (options?.subscriptionStartedAt ?? now).toISOString()
+        : null,
+    first_quota_used_at: null, // reset anchor on plan change
+  };
+
+  const { error: planUpdateError } = await supabase
     .from("users")
-    .update({
-      plan: newPlan,
-      quota_limit: planConfig.limit,
-      quota_used: 0,
-      quota_reset_at,
-      subscription_started_at:
-        newPlan !== Plan.FREE
-          ? (options?.subscriptionStartedAt ?? now).toISOString()
-          : null,
-      first_quota_used_at: null, // reset anchor on plan change
-    })
+    .update(updatePayload)
     .eq("clerk_user_id", clerkUserId);
+
+  if (planUpdateError) {
+    console.error("[Quota] Plan update failed:", planUpdateError.message);
+    if (planUpdateError.code === "42703" || planUpdateError.message?.includes("subscription_started_at") || planUpdateError.message?.includes("first_quota_used_at")) {
+      console.warn("[Quota] Custom plan columns are missing in DB. Falling back to core columns...");
+      const fallbackPayload = {
+        plan: newPlan,
+        quota_limit: planConfig.limit,
+        quota_used: 0,
+        quota_reset_at,
+      };
+      await supabase
+        .from("users")
+        .update(fallbackPayload)
+        .eq("clerk_user_id", clerkUserId);
+    }
+  }
 
   console.log(`[Quota] Plan updated for ${clerkUserId}: ${newPlan}, resets at: ${quota_reset_at}`);
 }
