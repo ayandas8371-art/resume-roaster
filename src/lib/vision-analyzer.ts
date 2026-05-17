@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { createCanvas } from "canvas";
 import { getNextGeminiKey } from "./gemini-keys";
 
 /**
@@ -59,6 +58,7 @@ async function pdfToImages(pdfBuffer: Buffer): Promise<string[]> {
       const page = await pdfDocument.getPage(i);
       const viewport = page.getViewport({ scale: 2.0 });
       
+      const { createCanvas } = require("canvas");
       const canvas = createCanvas(viewport.width, viewport.height);
       const context = canvas.getContext("2d");
       
@@ -116,6 +116,7 @@ export async function analyzeResumeWithVision(
           console.log(`[VisionAnalyzer] Resizing image from ${img.width}x${img.height} to ${width}x${height}`);
         }
         
+        const { createCanvas } = require("canvas");
         const canvas = createCanvas(width, height);
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
