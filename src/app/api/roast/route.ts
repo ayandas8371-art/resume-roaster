@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { ensureUser } from "@/lib/auth";
 import { checkQuota, decrementQuota, logUsage } from "@/lib/quota";
 import { isAIConfigured } from "@/lib/ai";
@@ -140,10 +140,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate roast via Multi-Model Router with Robust Retry Loop
+    // Generate roast via Multi-Model Router (Single execution to fit Vercel Hobby 10s timeout)
     let roast: RoastResult | null = null;
     let lastError: Error | null = null;
-    const maxRetries = 2;
+    const maxRetries = 0;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -249,11 +249,11 @@ export async function POST(request: NextRequest) {
 
     // Send email notification (Background)
     try {
-      const clerkUser = await currentUser();
-      const email = clerkUser?.emailAddresses[0]?.emailAddress;
-      if (email) {
+      const email = user?.email;
+      if (email && email !== "demo@example.com" && email !== "unknown@example.com") {
+        const nameFallback = email.split("@")[0] || "User";
         // We don't await this to keep the API response fast
-        sendRoastEmail(email, clerkUser.firstName || "User", roast.score, roast.headline);
+        sendRoastEmail(email, nameFallback, roast.score, roast.headline);
       }
     } catch (err) {
       console.error("Failed to trigger email notification:", err);
