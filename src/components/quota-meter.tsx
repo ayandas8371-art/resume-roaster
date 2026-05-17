@@ -28,7 +28,7 @@ export function QuotaMeter({
   const [internalLoading, setInternalLoading] = useState(true);
   const { showPaywall } = useRevenueCat();
 
-  const rawUsage = externalUsage !== undefined ? externalUsage : internalUsage;
+  const usage = externalUsage !== undefined ? externalUsage : internalUsage;
   const isLoading = externalLoading !== undefined ? externalLoading : internalLoading;
 
   useEffect(() => {
@@ -61,16 +61,7 @@ export function QuotaMeter({
     );
   }
 
-  if (!rawUsage) return null;
-
-  // Robustly normalize keys supporting database style, API style, and fallback values
-  const usage = {
-    quota_used: rawUsage.quota_used ?? rawUsage.used ?? 0,
-    quota_limit: rawUsage.quota_limit ?? rawUsage.quota ?? 2,
-    roasts_remaining: rawUsage.roasts_remaining ?? rawUsage.remaining ?? 2,
-    quota_reset_at: rawUsage.quota_reset_at ?? rawUsage.resetDate ?? undefined,
-    plan: rawUsage.plan ?? "free",
-  };
+  if (!usage) return null;
 
   const percentage = usage.quota_limit > 0 ? (usage.quota_used / usage.quota_limit) * 100 : 0;
   const isFree = usage.plan === "free";
@@ -105,7 +96,7 @@ export function QuotaMeter({
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
             {usage.roasts_remaining === 0
               ? (() => {
-                  const resetVal = usage.quota_reset_at;
+                  const resetVal = usage.quota_reset_at || usage.resetDate;
                   if (!resetVal) return "Quota exhausted";
                   const resetDate = new Date(resetVal);
                   const now = new Date();
@@ -121,7 +112,7 @@ export function QuotaMeter({
                     : `Resets in ${daysUntilReset} day${daysUntilReset !== 1 ? "s" : ""} · ${dateStr}`;
                 })()
               : (() => {
-                  const resetVal = usage.quota_reset_at;
+                  const resetVal = usage.quota_reset_at || usage.resetDate;
                   if (!resetVal) return `${usage.roasts_remaining} remaining`;
                   const resetDate = new Date(resetVal);
                   const dateStr = resetDate.toLocaleDateString("en-US", {
@@ -136,7 +127,7 @@ export function QuotaMeter({
       </div>
 
       {/* Free Plan Warnings & CTA */}
-      {isFree && usage.roasts_remaining === 1 && (
+      {isFree && usage.remaining === 1 && (
         <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 border border-amber-500/20">
           <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
           <p className="text-[10px] font-medium text-amber-200/80 leading-relaxed">
@@ -145,7 +136,7 @@ export function QuotaMeter({
         </div>
       )}
 
-      {isFree && usage.roasts_remaining === 0 && (
+      {isFree && usage.remaining === 0 && (
         <div className="space-y-4">
           <button
             onClick={showPaywall}

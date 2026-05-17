@@ -42,32 +42,14 @@ async function autoResetIfExpired(
     // Roll forward: new window starts NOW, expires 30 days from now
     const newResetAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    const updatePayload = {
-      quota_used: 0,
-      quota_reset_at: newResetAt.toISOString(),
-      first_quota_used_at: now.toISOString(), // new window start
-    };
-
-    let { error: resetError } = await supabase
+    await supabase
       .from("users")
-      .update(updatePayload)
+      .update({
+        quota_used: 0,
+        quota_reset_at: newResetAt.toISOString(),
+        first_quota_used_at: now.toISOString(), // new window start
+      })
       .eq("clerk_user_id", user.clerk_user_id);
-
-    // Fallback if migration-rolling-quota columns are not present in Supabase
-    if (resetError) {
-      console.warn("[Quota] Retrying autoResetIfExpired without first_quota_used_at:", resetError.message);
-      const { error: retryError } = await supabase
-        .from("users")
-        .update({
-          quota_used: 0,
-          quota_reset_at: newResetAt.toISOString(),
-        })
-        .eq("clerk_user_id", user.clerk_user_id);
-      
-      if (retryError) {
-        console.error("[Quota] Critical autoResetIfExpired fallback failed:", retryError.message);
-      }
-    }
 
     console.log(
       `[Quota] Free user ${user.clerk_user_id} quota auto-reset. Next reset: ${newResetAt.toISOString()}`
@@ -100,49 +82,13 @@ export async function checkQuota(clerkUserId: string): Promise<UsageStats> {
   }
 
   const supabase = createAdminClient();
-  let { data: rawUser, error } = await supabase
+  const { data: rawUser, error } = await supabase
     .from("users")
     .select("*")
     .eq("clerk_user_id", clerkUserId)
     .single();
 
   if (error || !rawUser) {
-    // Attempt to create user safely on-the-fly
-    try {
-      let email = "unknown@example.com";
-      try {
-        const { currentUser } = require("@clerk/nextjs/server");
-        const clerkUser = await currentUser();
-        email = clerkUser?.emailAddresses?.[0]?.emailAddress || email;
-      } catch (_) {}
-
-      const { data: newUser, error: createError } = await supabase
-        .from("users")
-        .insert({
-          clerk_user_id: clerkUserId,
-          email,
-          plan: Plan.FREE,
-          quota_limit: 2,
-          quota_used: 0,
-        })
-        .select()
-        .single();
-        
-      if (!createError && newUser) {
-        rawUser = newUser;
-      } else {
-        // Retry select if conflict or duplicate occurred
-        const { data: retryUser } = await supabase
-          .from("users")
-          .select("*")
-          .eq("clerk_user_id", clerkUserId)
-          .single();
-        if (retryUser) rawUser = retryUser;
-      }
-    } catch (_) {}
-  }
-
-  if (!rawUser) {
     return {
       quota_used: 0,
       quota_limit: 2,
@@ -221,45 +167,12 @@ export async function decrementQuota(clerkUserId: string): Promise<boolean> {
     );
   }
 
-  // Update user quota defensively
-  let { error: updateError } = await supabase
+  // Atomic update: only succeeds if quota_used hasn't changed (prevents race conditions)
+  await supabase
     .from("users")
     .update(updatePayload)
-    .eq("clerk_user_id", clerkUserId);
-
-  // Fallback: If update fails (possibly due to missing first_quota_used_at column),
-  // retry updating only the standard columns (quota_used and quota_reset_at)
-  if (updateError) {
-    console.warn("[Quota] Retrying decrement update without first_quota_used_at due to:", updateError.message);
-    const fallbackPayload: Record<string, any> = {
-      quota_used: updatePayload.quota_used,
-    };
-    if (updatePayload.quota_reset_at) {
-      fallbackPayload.quota_reset_at = updatePayload.quota_reset_at;
-    }
-    const { error: retryError } = await supabase
-      .from("users")
-      .update(fallbackPayload)
-      .eq("clerk_user_id", clerkUserId);
-      
-    if (retryError) {
-      // Final fallback: just try updating quota_used
-      console.warn("[Quota] Final decrement retry updating only quota_used due to:", retryError.message);
-      const { error: finalError } = await supabase
-        .from("users")
-        .update({ quota_used: updatePayload.quota_used })
-        .eq("clerk_user_id", clerkUserId);
-        
-      updateError = finalError;
-    } else {
-      updateError = null;
-    }
-  }
-
-  if (updateError) {
-    console.error("[Quota] Decrement failed after all fallbacks:", updateError.message);
-    return false;
-  }
+    .eq("clerk_user_id", clerkUserId)
+    .eq("quota_used", quota_used); // optimistic lock
 
   return true;
 }
@@ -290,39 +203,20 @@ export async function updateUserPlan(
     quota_reset_at = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
   }
 
-  const updatePayload = {
-    plan: newPlan,
-    quota_limit: planConfig.limit,
-    quota_used: 0,
-    quota_reset_at,
-    subscription_started_at:
-      newPlan !== Plan.FREE
-        ? (options?.subscriptionStartedAt ?? now).toISOString()
-        : null,
-    first_quota_used_at: null, // reset anchor on plan change
-  };
-
-  const { error: updateError } = await supabase
+  await supabase
     .from("users")
-    .update(updatePayload)
+    .update({
+      plan: newPlan,
+      quota_limit: planConfig.limit,
+      quota_used: 0,
+      quota_reset_at,
+      subscription_started_at:
+        newPlan !== Plan.FREE
+          ? (options?.subscriptionStartedAt ?? now).toISOString()
+          : null,
+      first_quota_used_at: null, // reset anchor on plan change
+    })
     .eq("clerk_user_id", clerkUserId);
-
-  if (updateError) {
-    console.warn("[Quota] Retrying updateUserPlan without missing schema columns:", updateError.message);
-    const { error: retryError } = await supabase
-      .from("users")
-      .update({
-        plan: newPlan,
-        quota_limit: planConfig.limit,
-        quota_used: 0,
-        quota_reset_at,
-      })
-      .eq("clerk_user_id", clerkUserId);
-      
-    if (retryError) {
-      console.error("[Quota] Critical updateUserPlan fallback failed:", retryError.message);
-    }
-  }
 
   console.log(`[Quota] Plan updated for ${clerkUserId}: ${newPlan}, resets at: ${quota_reset_at}`);
 }
