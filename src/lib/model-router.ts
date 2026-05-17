@@ -2,15 +2,39 @@ import OpenAI from "openai";
 import { getNextGeminiKey } from "./gemini-keys";
 
 /**
- * Multi-Provider Model Router
+ * Multi-Provider Model Router with Self-Healing JSON Validation
  * Prioritizes Gemini 2.5 Flash (via dynamic key rotation) for massive speed.
- * Falls back to NVIDIA NIM and OpenRouter.
+ * Falls back to NVIDIA NIM and OpenRouter instantly if generation fails or fails JSON validation.
  */
 
 function isRealKey(key: string | undefined): boolean {
   if (!key) return false;
   if (key.includes("YOUR_KEY") || key === "sk-or-v1-abc" || key.length < 10) return false;
   return true;
+}
+
+function isValidJSON(text: string | null | undefined): boolean {
+  if (!text) return false;
+  try {
+    let clean = text.trim();
+    // Isolate JSON object
+    const startIndex = clean.indexOf("{");
+    const endIndex = clean.lastIndexOf("}");
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      clean = clean.substring(startIndex, endIndex + 1);
+    } else {
+      clean = clean.replace(/```json/g, "").replace(/```/g, "").trim();
+    }
+    
+    // Aggressive JSON rescue checks
+    clean = clean.replace(/,\s*([\]}])/g, '$1');
+    clean = clean.replace(/[\u0000-\u001F]+/g, ' ');
+    
+    JSON.parse(clean);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 const nvidiaClient = isRealKey(process.env.NVIDIA_NIM_API_KEY)
@@ -54,12 +78,17 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
       });
       const text = response.choices[0]?.message?.content;
       if (text) {
-        console.log("[ModelRouter] Gemini succeeded.");
-        return text;
+        if (isValidJSON(text)) {
+          console.log("[ModelRouter] Gemini succeeded with valid JSON.");
+          return text;
+        } else {
+          console.warn("[ModelRouter] Gemini succeeded but returned invalid JSON. Triaging fallback...");
+          throw new Error("Invalid JSON structure returned by primary engine.");
+        }
       }
     }
   } catch (e) {
-    console.error("[ModelRouter] Gemini failed:", e instanceof Error ? e.message : e);
+    console.error("[ModelRouter] Gemini path failed:", e instanceof Error ? e.message : e);
   }
 
   // 2. Try NVIDIA NIM (Fallback)
@@ -84,8 +113,13 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
         });
         const text = response.choices[0]?.message?.content;
         if (text) {
-          console.log("[ModelRouter] NVIDIA NIM succeeded.");
-          return text;
+          if (isValidJSON(text)) {
+            console.log(`[ModelRouter] NVIDIA NIM (${model}) succeeded with valid JSON.`);
+            return text;
+          } else {
+            console.warn(`[ModelRouter] NVIDIA NIM (${model}) succeeded but returned invalid JSON. Trying next fallback...`);
+            throw new Error("Invalid JSON structure returned by NIM fallback.");
+          }
         }
       } catch (e) {
         console.error(`[ModelRouter] NVIDIA NIM (${model}) failed:`, e instanceof Error ? e.message : e);
@@ -109,8 +143,13 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
       });
       const text = response.choices[0]?.message?.content;
       if (text) {
-        console.log("[ModelRouter] OpenRouter succeeded.");
-        return text;
+        if (isValidJSON(text)) {
+          console.log("[ModelRouter] OpenRouter succeeded with valid JSON.");
+          return text;
+        } else {
+          console.warn("[ModelRouter] OpenRouter succeeded but returned invalid JSON.");
+          throw new Error("Invalid JSON structure returned by OpenRouter.");
+        }
       }
     } catch (e) {
       console.error("[ModelRouter] OpenRouter failed:", e instanceof Error ? e.message : e);

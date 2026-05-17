@@ -140,10 +140,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate roast via Multi-Model Router (Single execution to fit Vercel Hobby 10s timeout)
+    // Generate roast via Multi-Model Router (Self-healing structure)
     let roast: RoastResult | null = null;
     let lastError: Error | null = null;
-    const maxRetries = 0;
+    const maxRetries = 1;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -186,8 +186,8 @@ export async function POST(request: NextRequest) {
         console.warn(`[Roast API] Attempt ${attempt + 1} failed: ${lastError.message}`);
         
         if (attempt < maxRetries) {
-          // Exponential backoff before retry (1s, 2s)
-          await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+          // Fast backoff before retry (100ms, 200ms)
+          await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt)));
           continue;
         }
       }
