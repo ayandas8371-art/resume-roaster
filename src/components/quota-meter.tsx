@@ -29,7 +29,16 @@ export function QuotaMeter({
   const { showPaywall } = useRevenueCat();
 
   const usage = externalUsage !== undefined ? externalUsage : internalUsage;
-  const isLoading = externalLoading !== undefined ? externalLoading : internalLoading;
+  const isLoading = externalLoading !== undefined 
+    ? externalLoading 
+    : (externalUsage !== undefined ? false : internalLoading);
+
+  useEffect(() => {
+    // Keep client-side components reactive to server-side updates
+    if (externalUsage !== undefined && externalUsage !== null) {
+      window.dispatchEvent(new CustomEvent('quota-updated', { detail: externalUsage }));
+    }
+  }, [externalUsage]);
 
   useEffect(() => {
     // Only fetch internally if no external usage is provided
