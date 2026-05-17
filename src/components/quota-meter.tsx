@@ -24,26 +24,22 @@ export function QuotaMeter({
   usage?: any; 
   isLoading?: boolean; 
 } = {}) {
-  const [internalUsage, setInternalUsage] = useState<UsageData | null>(null);
-  const [internalLoading, setInternalLoading] = useState(true);
+  const [internalUsage, setInternalUsage] = useState<UsageData | null>(externalUsage || null);
+  const [internalLoading, setInternalLoading] = useState(externalUsage !== undefined ? false : true);
   const { showPaywall } = useRevenueCat();
 
-  const usage = externalUsage !== undefined ? externalUsage : internalUsage;
-  const isLoading = externalLoading !== undefined 
-    ? externalLoading 
-    : (externalUsage !== undefined ? false : internalLoading);
+  const usage = internalUsage;
+  const isLoading = externalLoading !== undefined ? externalLoading : internalLoading;
 
   useEffect(() => {
     // Keep client-side components reactive to server-side updates
     if (externalUsage !== undefined && externalUsage !== null) {
+      setInternalUsage(externalUsage);
       window.dispatchEvent(new CustomEvent('quota-updated', { detail: externalUsage }));
     }
   }, [externalUsage]);
 
   useEffect(() => {
-    // Only fetch internally if no external usage is provided
-    if (externalUsage !== undefined) return;
-
     const fetchUsage = async () => {
       try {
         const res = await fetch("/api/usage");
@@ -60,7 +56,7 @@ export function QuotaMeter({
     fetchUsage();
     window.addEventListener('refresh-quota', fetchUsage);
     return () => window.removeEventListener('refresh-quota', fetchUsage);
-  }, [externalUsage]);
+  }, []); // Always run client-side on mount to guarantee perfect correctness and bypass Next.js navigation caching!
 
   if (isLoading) {
     return (

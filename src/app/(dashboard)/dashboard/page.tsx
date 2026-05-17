@@ -3,11 +3,12 @@ import { UploadZone } from "@/components/upload-zone";
 import { QuotaMeter } from "@/components/quota-meter";
 import { RoastHistory } from "@/components/roast-history";
 import { ReferFriendCard } from "@/components/refer-friend-card";
+import { RemainingRoastsBadge } from "@/components/remaining-roasts-badge";
 import { auth } from "@clerk/nextjs/server";
 import { ensureUser } from "@/lib/auth";
 import { getUserUsage } from "@/lib/quota";
 import { Plan, PLAN_CONFIGS } from "@/types";
-import { Zap, History, Sparkles, TrendingUp } from "lucide-react";
+import { Zap, History, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Dashboard — RoastMyResume",
@@ -40,12 +41,8 @@ export default async function DashboardPage() {
             Upload your resume. Get brutally roasted. Actually get hired.
           </p>
         </div>
-        {usage && (
-          <div className="hidden md:flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 backdrop-blur-sm">
-            <TrendingUp className="h-4 w-4 text-orange-400" />
-            <span className="text-sm font-bold text-white">{(usage.roasts_remaining !== undefined ? usage.roasts_remaining : (usage as any).remaining) ?? 0} roasts remaining</span>
-          </div>
-        )}
+        <RemainingRoastsBadge initialUsage={usage} />
+
       </div>
 
       {/* ── Main Grid ── */}
