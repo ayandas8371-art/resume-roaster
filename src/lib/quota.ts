@@ -183,12 +183,11 @@ export async function decrementQuota(clerkUserId: string): Promise<boolean> {
     );
   }
 
-  // Atomic update: only succeeds if quota_used hasn't changed (prevents race conditions)
+  // Direct, safe update targeting the unique Clerk user ID
   const { error: updateError } = await supabase
     .from("users")
     .update(updatePayload)
-    .eq("clerk_user_id", clerkUserId)
-    .eq("quota_used", quota_used); // optimistic lock
+    .eq("clerk_user_id", clerkUserId);
 
   if (updateError) {
     console.error("[Quota] Decrement attempt failed:", updateError.message);
@@ -202,8 +201,7 @@ export async function decrementQuota(clerkUserId: string): Promise<boolean> {
       const { error: fallbackError } = await supabase
         .from("users")
         .update(fallbackPayload)
-        .eq("clerk_user_id", clerkUserId)
-        .eq("quota_used", quota_used);
+        .eq("clerk_user_id", clerkUserId);
 
       if (fallbackError) {
         console.error("[Quota] Fallback decrement failed:", fallbackError.message);
