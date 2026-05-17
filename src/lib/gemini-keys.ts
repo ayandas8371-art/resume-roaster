@@ -25,8 +25,13 @@ export async function getNextGeminiKey(): Promise<string> {
     const redis = getRedis();
     if (!redis) throw new Error("Redis not configured");
     
-    // Atomically increment the global counter in Redis
-    const count = await redis.incr("gemini_key_rotation_counter");
+    // Atomically increment the global counter in Redis with a strict 1-second timeout safety guard
+    const redisPromise = redis.incr("gemini_key_rotation_counter");
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Upstash Redis connection timeout")), 1000)
+    );
+
+    const count = await Promise.race([redisPromise, timeoutPromise]);
     
     // Calculate the correct 0-indexed position
     // (count - 1) ensures count 1 -> index 0, count 15 -> index 14, count 16 -> index 0
@@ -36,8 +41,8 @@ export async function getNextGeminiKey(): Promise<string> {
     
     return keys[index];
   } catch (error) {
-    console.error("[Gemini Keys] Redis error, falling back to random key:", error);
-    // Safe fallback if Redis happens to be down
+    console.error("[Gemini Keys] Redis error or timeout, falling back to random key:", error);
+    // Safe fallback if Redis is down or slow
     const randomIndex = Math.floor(Math.random() * keys.length);
     return keys[randomIndex];
   }

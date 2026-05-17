@@ -63,40 +63,43 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     // ============================================
-    // TWO-STAGE PIPELINE
-    // Stage 1: Try Vision Model (PRIMARY)
-    // Stage 2: Fallback to pdf-parse (BACKUP)
+    // OPTIMIZED TWO-STAGE PIPELINE
+    // Stage 1: Ultra-fast standard pdf-parse first for PDFs (native selectable text)
+    // Stage 2: Vision Model for images (JPG/PNG) and scanned PDFs
     // ============================================
 
     let extractedText: string = "";
 
-    // Diagnostics for API keys
-    const nimKey = process.env.NVIDIA_NIM_API_KEY;
-    console.log(`[Upload] NVIDIA NIM Key check: ${nimKey ? "Found (Starts with " + nimKey.substring(0, 8) + ")" : "NOT FOUND"}`);
-
-    // PRIMARY: Vision-based extraction via Llama 3.2 Vision 90B
-    try {
-      console.log(`[Upload] Starting vision-based extraction for type: ${fileMimeType}...`);
-      extractedText = await analyzeResumeWithVision(buffer, "", fileMimeType);
-      if (extractedText && extractedText.length > 50) {
-        console.log(`[Upload] Vision extraction succeeded: ${extractedText.length} chars`);
-      } else {
-        console.log("[Upload] Vision extraction returned insufficient text, falling back...");
-      }
-    } catch (visionErr) {
-      console.error("[Upload] Vision extraction failed:", visionErr);
-    }
-
-    // FALLBACK: If vision returned nothing, try pdf-parse (only if it's actually a PDF)
-    if ((!extractedText || extractedText.trim().length < 50) && file.type === "application/pdf") {
+    // 1. FAST PATH: Attempt standard text parsing first if it is a native PDF
+    if (file.type === "application/pdf") {
       try {
-        console.log("[Upload] Falling back to standard pdf-parse...");
+        console.log("[Upload] Running fast-path standard pdf-parse first...");
         const pdfParse = require("pdf-parse");
         const pdfData = await pdfParse(buffer);
-        extractedText = pdfData.text || "";
-        console.log(`[Upload] pdf-parse extraction successful: ${extractedText.length} chars`);
+        const text = pdfData.text || "";
+        if (text && text.trim().length >= 200) {
+          extractedText = text;
+          console.log(`[Upload] Fast-path standard parsing succeeded: ${extractedText.length} chars. Skipping slow vision pipeline!`);
+        } else {
+          console.log("[Upload] Fast-path standard parsing returned insufficient text (possibly a scanned PDF). Falling back to Vision.");
+        }
       } catch (parseErr) {
-        console.error("[Upload] pdf-parse fallback failed:", parseErr);
+        console.error("[Upload] Fast-path standard parsing failed:", parseErr);
+      }
+    }
+
+    // 2. VISION PATH: Fallback to slow OCR vision model only for scanned PDFs or images (JPG/PNG/WebP)
+    if (!extractedText || extractedText.trim().length < 200) {
+      try {
+        console.log(`[Upload] Executing Vision model extraction for type: ${fileMimeType}...`);
+        extractedText = await analyzeResumeWithVision(buffer, "", fileMimeType);
+        if (extractedText && extractedText.length > 50) {
+          console.log(`[Upload] Vision extraction succeeded: ${extractedText.length} chars`);
+        } else {
+          console.log("[Upload] Vision extraction returned insufficient text.");
+        }
+      } catch (visionErr) {
+        console.error("[Upload] Vision extraction failed:", visionErr);
       }
     }
 
