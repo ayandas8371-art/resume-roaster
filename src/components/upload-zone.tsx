@@ -152,6 +152,11 @@ export function UploadZone({ usage }: UploadZoneProps) {
           created_at: new Date().toISOString()
         };
         localStorage.setItem("roast_history", JSON.stringify([newEntry, ...localHistory].slice(0, 50)));
+
+        // Real-time Event-Driven quota synchronization
+        if (roastData.usage) {
+          window.dispatchEvent(new CustomEvent("quota-updated", { detail: roastData.usage }));
+        }
       }
       
       router.refresh();

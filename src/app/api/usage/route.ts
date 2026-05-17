@@ -25,11 +25,20 @@ export async function GET(_request: NextRequest) {
     const stats = await checkQuota(userId) as any;
 
     return NextResponse.json({
+      // Strict UsageStats properties
+      quota_used: stats.quota_used,
+      quota_limit: stats.quota_limit,
+      roasts_remaining: stats.roasts_remaining,
+      plan: stats.plan,
+      is_lifetime_limit: false,
+      quota_reset_at: stats.quota_reset_at ?? null,
+
+      // Deprecated clean aliases (backward compatibility)
       used: stats.quota_used,
       quota: stats.quota_limit,
       remaining: stats.roasts_remaining,
       resetDate: stats.quota_reset_at ?? null,
-      plan: stats.plan,
+
       userId, // for debugging
     });
   } catch (error) {

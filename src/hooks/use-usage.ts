@@ -36,6 +36,20 @@ export function useUsage() {
 
   useEffect(() => {
     fetchUsage();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail) {
+        setUsage(e.detail);
+      }
+    };
+
+    window.addEventListener("quota-updated", handleUpdate);
+    window.addEventListener("refresh-quota", fetchUsage);
+    
+    return () => {
+      window.removeEventListener("quota-updated", handleUpdate);
+      window.removeEventListener("refresh-quota", fetchUsage);
+    };
   }, [fetchUsage]);
 
   return { usage, isLoading, error, refetch: fetchUsage };
