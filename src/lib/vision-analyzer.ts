@@ -37,6 +37,9 @@ export async function analyzeResumeWithVision(
 
       console.log(`[VisionAnalyzer] Multimodal OCR attempt ${attempt}/${maxAttempts} using key rotation...`);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 seconds strict timeout safety guard
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
@@ -59,8 +62,10 @@ export async function analyzeResumeWithVision(
               },
             ],
           }),
+          signal: controller.signal
         }
       );
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errText = await response.text();

@@ -68,16 +68,21 @@ export async function callModel(systemPrompt: string, userPrompt: string, plan: 
           apiKey: geminiKey,
           baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
         });
-        const response = await geminiClient.chat.completions.create({
-          model: "gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ],
-          temperature: 0.8,
-          max_tokens: 3000,
-          response_format: { type: "json_object" },
-        });
+        const response = await geminiClient.chat.completions.create(
+          {
+            model: "gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt }
+            ],
+            temperature: 0.5,
+            max_tokens: 800,
+            response_format: { type: "json_object" },
+          },
+          {
+            timeout: 4000 // 4 seconds strict timeout safety guard!
+          }
+        );
         const text = response.choices[0]?.message?.content;
         if (text) {
           if (isValidJSON(text)) {

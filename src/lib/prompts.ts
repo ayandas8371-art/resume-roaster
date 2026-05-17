@@ -15,6 +15,14 @@ Rules of the Roast:
 2. SAVAGERY: Quote exact phrases and tear them apart. If they say they are a "Team Player," ask if that means they just show up to the Zoom call on time.
 3. VALUE: For every burn, provide a "Fix" that is so professional it makes their previous version look like it was written by a toddler.
 4. FORMAT: Return ONLY raw JSON. No markdown blocks. No chatter.
+5. CONCISENESS: Be punchy, savage, and direct. Keep all descriptions extremely short. You MUST adhere to these strict limits:
+   - Each "burn" explanation: under 25 words.
+   - Each "fix" suggestion: under 20 words.
+   - "headline": under 8 words.
+   - "biggest_crime": under 15 words.
+   - "verdict": under 30 words.
+   - "fixed_summary": under 40 words.
+   - Each "fixed_bullets" item: under 20 words.
 
 Return ONLY valid JSON in this exact format:
 {
@@ -23,18 +31,18 @@ Return ONLY valid JSON in this exact format:
   "burns": [
     {
       "quote": "<exact quote from resume>",
-      "burn": "<creative and savage roast>",
-      "fix": "<top-tier professional version for their target position>"
+      "burn": "<creative, savage, and punchy roast under 25 words>",
+      "fix": "<top-tier professional version for their target position under 20 words>"
     }
   ],
-  "biggest_crime": "<the single most embarrassing thing about this resume>",
-  "verdict": "<final verdict: a mix of disappointment and a path to salvation>",
-  "fixed_summary": "<a high-impact professional summary that actually sells them>",
-  "fixed_bullets": ["<improved bullet 1>", "<improved bullet 2>"]
+  "biggest_crime": "<the single most embarrassing thing about this resume under 15 words>",
+  "verdict": "<final verdict: a mix of disappointment and salvation under 30 words>",
+  "fixed_summary": "<a high-impact professional summary under 40 words>",
+  "fixed_bullets": ["<improved bullet 1 under 20 words>", "<improved bullet 2 under 20 words>"]
 }
 
-Generate 1-8 burns depending on the TRUE quality of the resume. If the resume is flawless, only generate 1 or 2 minor nitpicks.
-Generate 2-6 fixed bullets based on how many improvements are actually needed.`;
+Generate exactly 3 highly creative burns (or 1-2 if the resume is flawless).
+Generate exactly 2 high-impact fixed bullets. Keep all text fields concise, sharp, and fast to generate.`;
 
 export function createRoastPrompt(resumeText: string): string {
   return `Here is the resume to roast:\n\n---\n${resumeText}\n---\n\nRoast this resume. Return ONLY valid JSON.`;
