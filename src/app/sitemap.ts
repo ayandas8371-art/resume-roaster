@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://resume-roaster-pi-seven.vercel.app";
+  const baseUrl = "https://hiredorroasted.online";
   const now = new Date();
 
   return [

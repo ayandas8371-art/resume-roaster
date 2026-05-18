@@ -8,7 +8,7 @@ export default function TermsPage() {
         <p className="text-sm text-neutral-400">Last updated: May 18, 2026</p>
         
         <p>
-          Welcome to <strong>Hired or Roasted</strong>. Please read these Terms of Service ("Terms") carefully before using our website at <Link href="https://resume-roaster-pi-seven.vercel.app" className="text-purple-400 hover:underline">https://resume-roaster-pi-seven.vercel.app</Link> (the "Service") operated by Hired or Roasted ("us", "we", or "our").
+          Welcome to <strong>Hired or Roasted</strong>. Please read these Terms of Service ("Terms") carefully before using our website at <Link href="https://hiredorroasted.online" className="text-purple-400 hover:underline">https://hiredorroasted.online</Link> (the "Service") operated by Hired or Roasted ("us", "we", or "our").
         </p>
 
         <section className="space-y-3">

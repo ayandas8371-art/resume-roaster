@@ -344,7 +344,7 @@ export function ScoreBreakdownModal({ roast, onClose }: ScoreBreakdownModalProps
               <span className="text-[8px] font-black uppercase tracking-widest text-white/50">AI Powered</span>
             </div>
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-purple-500">
-              roastmyresume.com
+              hiredorroasted.online
             </p>
           </div>
         </div>

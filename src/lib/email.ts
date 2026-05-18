@@ -19,7 +19,7 @@ export async function sendRoastEmail(to: string, userName: string, score: number
     const resend = getResend();
     if (!resend) return;
     await resend.emails.send({
-      from: 'Roast My Resume <onboarding@resend.dev>',
+      from: 'Hired or Roasted <onboarding@resend.dev>',
       to: [to],
       subject: `Your Resume Roast Result: ${score}/10 🔥`,
       html: `
@@ -33,7 +33,7 @@ export async function sendRoastEmail(to: string, userName: string, score: number
           <p>Want to see the full roast and the fixed version?</p>
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="display: inline-block; background-color: #A855F7; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">View Full Roast</a>
           <p style="margin-top: 40px; font-size: 12px; color: #71717A;">
-            Roast My Resume — Stop submitting mid resumes.
+            Hired or Roasted — Stop submitting mid resumes.
           </p>
         </div>
       `

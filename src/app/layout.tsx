@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://resume-roaster-pi-seven.vercel.app"),
+  metadataBase: new URL("https://hiredorroasted.online"),
   title: {
     default: "Hired or Roasted — Savage AI Resume Roaster & Critique",
     template: "%s | Hired or Roasted",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://resume-roaster-pi-seven.vercel.app",
+    url: "https://hiredorroasted.online",
     title: "Hired or Roasted — Savage AI Resume Roaster & Critique",
     description:
       "Get roasted by our savage AI recruiter. Receive brutally honest critiques, metrics-driven fixes, and a shareable scorecard. Upload your resume now!",
@@ -73,7 +73,7 @@ const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "Hired or Roasted",
-  "url": "https://resume-roaster-pi-seven.vercel.app",
+  "url": "https://hiredorroasted.online",
 };
 
 const softwareSchema = {

@@ -18,7 +18,7 @@ export function Footer() {
                   className="h-full w-full object-contain"
                 />
               </div>
-              <span className="text-2xl font-black text-white tracking-tight">Roast<span className="text-purple-500">My</span>Resume</span>
+              <span className="text-2xl font-black text-white tracking-tight">Hired<span className="text-purple-500">Or</span>Roasted</span>
             </Link>
             <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
               Transforming career terrorism into professional excellence. Powered by advanced AI to help you land your dream role.
@@ -67,7 +67,7 @@ export function Footer() {
         </div>
         
         <div className="mt-20 flex flex-col md:flex-row items-center justify-between border-t border-white/5 pt-10 text-[10px] uppercase tracking-widest text-gray-600">
-          <p>© {new Date().getFullYear()} Roast My Resume. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Hired or Roasted. All rights reserved.</p>
           <div className="mt-4 md:mt-0 flex gap-8">
             <span>Built with AI</span>
             <span>Secure PDF Encryption</span>

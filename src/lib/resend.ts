@@ -19,12 +19,12 @@ export async function sendWelcomeEmail(
 
   try {
     await resend.emails.send({
-      from: "Roast My Resume <noreply@roastmyresume.com>",
+      from: "Hired or Roasted <noreply@hiredorroasted.online>",
       to: email,
-      subject: "Welcome to Roast My Resume 🔥",
+      subject: "Welcome to Hired or Roasted 🔥",
       html: `
         <div style="font-family: 'Inter', system-ui, sans-serif; max-width: 600px; margin: 0 auto; background: #0A0A0A; color: #FAFAFA; padding: 40px; border-radius: 16px;">
-          <h1 style="font-size: 28px; margin-bottom: 16px;">Welcome to Roast My Resume 🔥</h1>
+          <h1 style="font-size: 28px; margin-bottom: 16px;">Welcome to Hired or Roasted 🔥</h1>
           <p style="color: #A1A1AA; font-size: 16px; line-height: 1.6;">
             Hey ${name || "there"},
           </p>
@@ -41,7 +41,7 @@ export async function sendWelcomeEmail(
             Upload Your First Resume →
           </a>
           <p style="color: #52525B; font-size: 12px; margin-top: 40px;">
-            © Roast My Resume. Brutal honesty, delivered with love.
+            © Hired or Roasted. Brutal honesty, delivered with love.
           </p>
         </div>
       `,
@@ -61,7 +61,7 @@ export async function sendRoastCompleteEmail(
 
   try {
     await resend.emails.send({
-      from: "Roast My Resume <noreply@roastmyresume.com>",
+      from: "Hired or Roasted <noreply@hiredorroasted.online>",
       to: email,
       subject: `Your Resume Scored ${score}/100 🔥`,
       html: `

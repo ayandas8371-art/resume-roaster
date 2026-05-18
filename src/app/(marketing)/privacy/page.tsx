@@ -8,7 +8,7 @@ export default function PrivacyPage() {
         <p className="text-sm text-neutral-400">Last updated: May 18, 2026</p>
 
         <p>
-          At <strong>Hired or Roasted</strong>, accessible from <Link href="https://resume-roaster-pi-seven.vercel.app" className="text-purple-400 hover:underline">https://resume-roaster-pi-seven.vercel.app</Link>, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Hired or Roasted and how we use it.
+          At <strong>Hired or Roasted</strong>, accessible from <Link href="https://hiredorroasted.online" className="text-purple-400 hover:underline">https://hiredorroasted.online</Link>, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Hired or Roasted and how we use it.
         </p>
 
         <section className="space-y-3">

@@ -27,12 +27,12 @@ export function Navbar() {
           <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/20 bg-black transition-transform group-hover:scale-110">
             <img 
               src="/brand/logo.png" 
-              alt="Roast My Resume Logo" 
+              alt="Hired or Roasted Logo" 
               className="h-full w-full object-contain"
             />
           </div>
           <span className="text-xl font-extrabold tracking-tight text-white">
-            Roast<span className="text-purple-500">My</span>Resume
+            Hired<span className="text-purple-500">Or</span>Roasted
           </span>
         </Link>
 

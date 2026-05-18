@@ -1,5 +1,5 @@
 // ============================================
-// CORE TYPES FOR ROAST MY RESUME
+// CORE TYPES FOR HIRED OR ROASTED
 // ============================================
 
 export enum Plan {

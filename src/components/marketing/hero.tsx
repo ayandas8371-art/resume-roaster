@@ -66,7 +66,7 @@ export function Hero() {
                 <button className="group relative flex h-14 sm:h-20 items-center justify-center gap-3 overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-600 via-red-600 to-purple-700 px-8 sm:px-12 text-base sm:text-xl font-black text-white transition-all hover:scale-[1.05] active:scale-95 shadow-[0_0_50px_rgba(234,88,12,0.4)]">
                   <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
                   <img src="/brand/logo.png" alt="Logo" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
-                  Roast My Resume Free <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:translate-x-1" />
+                  Hired or Roasted Free <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:translate-x-1" />
                 </button>
               </SignUpButton>
             </Show>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Copy, Check, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PROD_URL = "https://roastmyresume.com";
+const PROD_URL = "https://hiredorroasted.online";
 
 export function ReferFriendCard() {
   const [copied, setCopied] = useState(false);
@@ -38,7 +38,7 @@ export function ReferFriendCard() {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: "Roast My Resume",
+          title: "Hired or Roasted",
           text: "Get brutally honest AI feedback on your resume. It's free!",
           url: referralLink,
         });

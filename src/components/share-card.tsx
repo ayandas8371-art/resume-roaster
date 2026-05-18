@@ -162,7 +162,7 @@ export function ShareCard({ score, headline, bestBurn, onClose }: ShareCardProps
                 </div>
                 {/* Restored gorgeous gradient text! */}
                 <p className="text-sm font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-purple-400 drop-shadow-md">
-                  roastmyresume.com
+                  hiredorroasted.online
                 </p>
               </div>
             </div>
