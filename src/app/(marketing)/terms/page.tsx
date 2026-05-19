@@ -21,7 +21,7 @@ export default function TermsPage() {
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold text-white">2. Description of Service</h2>
           <p>
-            Hired or Roasted provides an AI-powered resume analysis, critique, scorecard generation, and career optimization utility. The Service is provided "as is" and is intended for informational, educational, and entertainment purposes. We do not guarantee career placement, job offers, or specific resume performance outcomes.
+            Hired or Roasted provides an AI-powered resume analysis, formatting critique, and career optimization SaaS (Software as a Service) utility. The Service is provided "as is" and is intended for professional resume analysis and formatting guidance. We do not guarantee career placement, job offers, or specific resume performance outcomes.
           </p>
         </section>
 
@@ -86,11 +86,13 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold text-white">8. Contact Us</h2>
+          <h2 className="text-2xl font-semibold text-white">8. Contact Us & Business Details</h2>
           <p>
             If you have any questions about these Terms, please contact us at:
-            <br />
-            Email: <a href="mailto:ayandas8371@gmail.com" className="text-purple-400 hover:underline">ayandas8371@gmail.com</a>
+            <br /><br />
+            <strong>Legal Business Name:</strong> Ayan Das<br />
+            <strong>Email:</strong> <a href="mailto:ayandas8371@gmail.com" className="text-purple-400 hover:underline">ayandas8371@gmail.com</a><br />
+            <strong>Physical Address:</strong> [INSERT YOUR FULL HOME OR OFFICE ADDRESS HERE, CITY, STATE, PIN CODE, INDIA]
           </p>
         </section>
 
