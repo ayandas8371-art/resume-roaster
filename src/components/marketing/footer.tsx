@@ -35,6 +35,7 @@ export function Footer() {
             <ul className="mt-8 space-y-4 text-sm text-gray-400">
               <li><Link href="#how-it-works" className="hover:text-white transition-colors flex items-center gap-2">How it Works <ArrowUpRight className="h-3 w-3 opacity-0 -translate-y-1 transition-all group-hover:opacity-100 group-hover:translate-y-0" /></Link></li>
               <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing Plans</Link></li>
+              <li><Link href="/blog" className="hover:text-white transition-colors">Career Blog</Link></li>
               <li><Link href="#faq" className="hover:text-white transition-colors">Support & FAQ</Link></li>
               <li><Link href="/dashboard" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">Member Dashboard</Link></li>
             </ul>

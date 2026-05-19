@@ -41,6 +41,7 @@ export function Navbar() {
           <SignedOut>
             <Link href="/#how-it-works" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">How it Works</Link>
             <Link href="/#pricing" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Pricing</Link>
+            <Link href="/blog" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Blog</Link>
             <div className="h-4 w-px bg-white/10" />
             <SignInButton mode="modal">
               <button className="text-sm font-semibold text-white/80 hover:text-white transition-colors">Sign In</button>
@@ -91,6 +92,7 @@ export function Navbar() {
               <SignedOut>
                 <Link href="/#how-it-works" onClick={() => setMobileOpen(false)} className="text-2xl font-bold text-white">How it Works</Link>
                 <Link href="/#pricing" onClick={() => setMobileOpen(false)} className="text-2xl font-bold text-white">Pricing</Link>
+                <Link href="/blog" onClick={() => setMobileOpen(false)} className="text-2xl font-bold text-white">Blog</Link>
                 <div className="h-px bg-white/10" />
                 <SignInButton mode="modal">
                   <button className="text-left text-xl font-medium text-gray-400">Sign In</button>
