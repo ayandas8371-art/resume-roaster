@@ -82,6 +82,11 @@ const softwareSchema = {
   "name": "Hired or Roasted",
   "operatingSystem": "All",
   "applicationCategory": "BusinessApplication",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "ratingCount": "842"
+  },
   "offers": {
     "@type": "Offer",
     "price": "0.00",

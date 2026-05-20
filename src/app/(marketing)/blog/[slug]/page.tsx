@@ -53,10 +53,12 @@ export default function BlogPostPage({ params }: Props) {
     "@type": "BlogPosting",
     "headline": post.title,
     "description": post.excerpt,
-    "datePublished": post.date,
+    "image": "https://hiredorroasted.online/og.png",
+    "datePublished": `${post.date}T08:00:00Z`,
     "author": [{
         "@type": "Organization",
         "name": post.author,
+        "url": "https://hiredorroasted.online"
     }]
   };
 
