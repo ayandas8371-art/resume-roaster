@@ -39,7 +39,7 @@ export default function BillingPage() {
   const handleSelect = async (plan: Plan) => {
     if (plan !== Plan.FREE) {
       if (userId) {
-        window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti/?app_user_id=${userId}`;
+        window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti?app_user_id=${userId}`;
       }
     }
   };
@@ -110,7 +110,7 @@ export default function BillingPage() {
               ) : (
                 <button
                   onClick={() => {
-                    if (userId) window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti/?app_user_id=${userId}`;
+                    if (userId) window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti?app_user_id=${userId}`;
                   }}
                   className="rounded-xl bg-gradient-to-r from-orange-500 to-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02]"
                 >

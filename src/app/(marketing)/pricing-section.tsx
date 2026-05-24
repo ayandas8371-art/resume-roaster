@@ -21,7 +21,7 @@ export function PricingSection() {
       // PRO or STARTER plan
       if (userId) {
         // Send logged-in users directly to your new RevenueCat checkout page
-        window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti/?app_user_id=${userId}`;
+        window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti?app_user_id=${userId}`;
       } else {
         // If they aren't logged in, they must sign up first
         router.push("/sign-up");
