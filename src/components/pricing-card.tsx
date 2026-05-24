@@ -8,10 +8,11 @@ import { PLAN_CONFIGS, Plan } from "@/types";
 interface PricingCardProps {
   plan: Plan;
   isCurrentPlan?: boolean;
+  disabled?: boolean;
   onSelect?: (plan: Plan) => void;
 }
 
-export function PricingCard({ plan, isCurrentPlan, onSelect }: PricingCardProps) {
+export function PricingCard({ plan, isCurrentPlan, disabled, onSelect }: PricingCardProps) {
   const config = PLAN_CONFIGS[plan];
 
   return (
@@ -101,17 +102,17 @@ export function PricingCard({ plan, isCurrentPlan, onSelect }: PricingCardProps)
 
         <button
           onClick={() => onSelect?.(plan)}
-          disabled={isCurrentPlan}
+          disabled={isCurrentPlan || disabled}
           className={cn(
             "w-full rounded-2xl py-4 text-sm font-black uppercase tracking-widest transition-all duration-300 backdrop-blur-md",
-            isCurrentPlan
+            (isCurrentPlan || disabled)
               ? "cursor-default bg-white/5 text-gray-500 border border-white/5"
               : config.popular
                 ? "bg-white text-black hover:bg-gray-200 hover:scale-[1.02] shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] active:scale-95"
                 : "bg-white/10 text-white hover:bg-white/20 border border-white/10 hover:border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:scale-[1.02] active:scale-95"
           )}
         >
-          {isCurrentPlan ? "Current Plan" : plan === Plan.FREE ? "Get Started" : "Upgrade Now"}
+          {disabled && !isCurrentPlan ? "Loading..." : isCurrentPlan ? "Current Plan" : plan === Plan.FREE ? "Get Started" : "Upgrade Now"}
         </button>
       </div>
     </motion.div>

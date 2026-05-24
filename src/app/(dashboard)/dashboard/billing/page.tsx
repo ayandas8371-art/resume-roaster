@@ -28,7 +28,7 @@ const PLAN_PERKS: Record<string, { icon: React.ReactNode; text: string }[]> = {
 
 export default function BillingPage() {
   const { usage, isLoading } = useUsage();
-  const { showPaywall, showCustomerCenter } = useRevenueCat();
+  const { showPaywall, showCustomerCenter, isInitialized, isLoading: isRcLoading } = useRevenueCat();
 
   const planKey = usage?.plan ?? "free";
   const perks = PLAN_PERKS[planKey] ?? PLAN_PERKS.free;
@@ -104,9 +104,10 @@ export default function BillingPage() {
               ) : (
                 <button
                   onClick={() => showPaywall()}
-                  className="rounded-xl bg-gradient-to-r from-orange-500 to-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02]"
+                  disabled={!isInitialized || isRcLoading}
+                  className="rounded-xl bg-gradient-to-r from-orange-500 to-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  Upgrade Now →
+                  {(!isInitialized || isRcLoading) ? "Loading..." : "Upgrade Now →"}
                 </button>
               )}
             </div>
@@ -148,6 +149,7 @@ export default function BillingPage() {
                 plan={plan}
                 isCurrentPlan={usage?.plan === plan}
                 onSelect={handleSelect}
+                disabled={!isInitialized || isRcLoading}
               />
             </motion.div>
           ))}

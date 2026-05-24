@@ -26,7 +26,7 @@ export function QuotaMeter({
 } = {}) {
   const [internalUsage, setInternalUsage] = useState<UsageData | null>(externalUsage || null);
   const [internalLoading, setInternalLoading] = useState(externalUsage !== undefined ? false : true);
-  const { showPaywall } = useRevenueCat();
+  const { showPaywall, isInitialized, isLoading: isRcLoading } = useRevenueCat();
 
   const usage = internalUsage;
   const isLoading = externalLoading !== undefined ? externalLoading : internalLoading;
@@ -154,11 +154,12 @@ export function QuotaMeter({
         <div className="space-y-4">
           <button
             onClick={showPaywall}
-            className="flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-red-600 p-4 text-sm font-black text-white hover:scale-[1.02] transition-all active:scale-95 shadow-xl shadow-purple-600/20 group"
+            disabled={!isInitialized || isRcLoading}
+            className="flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-red-600 p-4 text-sm font-black text-white hover:scale-[1.02] transition-all active:scale-95 shadow-xl shadow-purple-600/20 group disabled:opacity-50 disabled:pointer-events-none"
           >
             <div className="flex items-center gap-3">
               <Zap className="h-5 w-5 fill-white" />
-              <span>Upgrade to Pro — 30 reports/mo</span>
+              <span>{(!isInitialized || isRcLoading) ? "Loading..." : "Upgrade to Pro — 30 reports/mo"}</span>
             </div>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </button>

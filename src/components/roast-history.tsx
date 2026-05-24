@@ -33,7 +33,7 @@ type FetchState =
 
 export function RoastHistory() {
   const router = useRouter();
-  const { showPaywall } = useRevenueCat();
+  const { showPaywall, isInitialized, isLoading: isRcLoading } = useRevenueCat();
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
   useEffect(() => {
@@ -122,10 +122,11 @@ export function RoastHistory() {
           {/* CTA */}
           <button
             onClick={() => showPaywall()}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-purple-600 px-6 py-3 text-sm font-black text-white shadow-[0_0_24px_rgba(249,115,22,0.35)] transition-all hover:scale-[1.03] hover:shadow-[0_0_32px_rgba(249,115,22,0.5)] active:scale-[0.98]"
+            disabled={!isInitialized || isRcLoading}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-purple-600 px-6 py-3 text-sm font-black text-white shadow-[0_0_24px_rgba(249,115,22,0.35)] transition-all hover:scale-[1.03] hover:shadow-[0_0_32px_rgba(249,115,22,0.5)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             <Crown className="h-4 w-4" />
-            Unlock History — Upgrade Now
+            {(!isInitialized || isRcLoading) ? "Loading..." : "Unlock History — Upgrade Now"}
           </button>
 
           <p className="text-[11px] text-gray-600">

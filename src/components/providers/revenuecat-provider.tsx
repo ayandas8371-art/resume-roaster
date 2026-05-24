@@ -60,6 +60,7 @@ function getPlanFromEntitlements(entitlements: Record<string, { isActive: boolea
 export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoaded } = useUser();
   const purchasesRef = useRef<any>(null); // holds initialized Purchases instance
+  const isInitializingRef = useRef(false); // prevent React StrictMode double init
   const [state, setState] = useState<PlanState>({
     isPro: false,
     isStarter: false,
@@ -111,10 +112,15 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
+    // Strict React Mode check: Do not initialize twice.
+    if (purchasesRef.current || isInitializingRef.current || state.isInitialized) return;
+    isInitializingRef.current = true;
+
     const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY;
     if (!apiKey) {
       console.error("[RC] NEXT_PUBLIC_REVENUECAT_API_KEY is not set");
       setState(prev => ({ ...prev, isLoading: false, error: "Billing not configured" }));
+      isInitializingRef.current = false;
       return;
     }
 
@@ -144,6 +150,14 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           });
         }
 
+        // Prefetch offerings to ensure RevenueCat has fully synced with Paddle backend
+        // before we ever allow the user to click the buy button.
+        try {
+          await instance.getOfferings();
+        } catch (offerError) {
+          console.warn("[RC] Could not prefetch offerings, Paddle sync might be delayed:", offerError);
+        }
+
         setState(prev => ({ ...prev, isInitialized: true }));
         await refreshPlan();
       } catch (e: any) {
@@ -166,6 +180,8 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             isLoading: false,
           }));
         } catch (_) {}
+      } finally {
+        isInitializingRef.current = false;
       }
     };
 
@@ -174,8 +190,8 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // ── Show RevenueCat Paywall (full-screen checkout overlay) ───────────────────
   const showPaywall = useCallback(async () => {
-    if (!purchasesRef.current) {
-      console.error("[RC] SDK not initialized. Cannot show paywall.");
+    if (!purchasesRef.current || !state.isInitialized) {
+      console.warn("[RC] SDK not initialized yet. Please wait.");
       return;
     }
 
@@ -211,11 +227,11 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (e?.userCancelled) {
         console.log("[RC] User cancelled the paywall");
       } else {
-        console.error("[RC] Paywall error:", e);
-        setState(prev => ({ ...prev, error: "Checkout failed. Please try again." }));
+        console.error("[RC] Paywall error (Code 500/16 check):", e);
+        setState(prev => ({ ...prev, error: "Checkout failed. Paddle might be misconfigured in RevenueCat." }));
       }
     }
-  }, [user, syncPlanToDb]);
+  }, [user, syncPlanToDb, state.isInitialized]);
   
   // ── Show RevenueCat Customer Center (subscription management) ──────────────
   const showCustomerCenter = useCallback(async () => {

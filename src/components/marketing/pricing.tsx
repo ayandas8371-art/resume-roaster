@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 export function Pricing() {
-  const { showPaywall } = useRevenueCat();
+  const { showPaywall, isInitialized, isLoading } = useRevenueCat();
   const { isSignedIn } = useUser();
   const clerk = useClerk();
   const router = useRouter();
@@ -60,6 +60,7 @@ export function Pricing() {
               <PricingCard
                 plan={plan}
                 onSelect={handleSelect}
+                disabled={!isInitialized || isLoading}
               />
             </motion.div>
           ))}
