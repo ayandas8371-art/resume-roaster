@@ -4,15 +4,28 @@ import { motion } from "framer-motion";
 import { Plan } from "@/types";
 import { PricingCard } from "@/components/pricing-card";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 export function PricingSection() {
   const router = useRouter();
+  const { userId } = useAuth();
 
   const handleSelect = (plan: Plan) => {
     if (plan === Plan.FREE) {
-      router.push("/sign-up");
+      if (userId) {
+        router.push("/dashboard");
+      } else {
+        router.push("/sign-up");
+      }
     } else {
-      router.push("/sign-up");
+      // PRO or STARTER plan
+      if (userId) {
+        // Send logged-in users directly to your new RevenueCat checkout page
+        window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti/?app_user_id=${userId}`;
+      } else {
+        // If they aren't logged in, they must sign up first
+        router.push("/sign-up");
+      }
     }
   };
 
