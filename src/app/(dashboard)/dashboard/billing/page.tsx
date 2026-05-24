@@ -8,6 +8,7 @@ import { PricingCard } from "@/components/pricing-card";
 import { QuotaMeter } from "@/components/quota-meter";
 import { formatPlanName } from "@/utils/format";
 import { useRevenueCat } from "@/components/providers/revenuecat-provider";
+import { useAuth } from "@clerk/nextjs";
 
 const PLAN_PERKS: Record<string, { icon: React.ReactNode; text: string }[]> = {
   free: [
@@ -28,14 +29,19 @@ const PLAN_PERKS: Record<string, { icon: React.ReactNode; text: string }[]> = {
 
 export default function BillingPage() {
   const { usage, isLoading } = useUsage();
-  const { showPaywall, showCustomerCenter } = useRevenueCat();
+  const { showCustomerCenter } = useRevenueCat();
+  const { userId } = useAuth();
 
   const planKey = usage?.plan ?? "free";
   const perks = PLAN_PERKS[planKey] ?? PLAN_PERKS.free;
   const isPaid = planKey !== "free";
 
   const handleSelect = async (plan: Plan) => {
-    if (plan !== Plan.FREE) await showPaywall();
+    if (plan !== Plan.FREE) {
+      if (userId) {
+        window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti/?app_user_id=${userId}`;
+      }
+    }
   };
 
   return (
@@ -103,7 +109,9 @@ export default function BillingPage() {
                 </button>
               ) : (
                 <button
-                  onClick={() => showPaywall()}
+                  onClick={() => {
+                    if (userId) window.location.href = `https://pay.rev.cat/xfrmazoqasqrwiti/?app_user_id=${userId}`;
+                  }}
                   className="rounded-xl bg-gradient-to-r from-orange-500 to-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:scale-[1.02]"
                 >
                   Upgrade Now →
