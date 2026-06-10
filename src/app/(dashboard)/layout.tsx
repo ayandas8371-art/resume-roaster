@@ -6,7 +6,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="relative flex min-h-screen overflow-hidden selection:bg-orange-500/30">
       
       {/* ─── Global Background ─── */}
-      <div className="pointer-events-none fixed inset-0 z-0 bg-black">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-black overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/fun_roast_bg.png"

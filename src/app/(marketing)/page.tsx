@@ -7,8 +7,8 @@ import { FAQ } from "@/components/marketing/faq";
 
 export default function MarketingPage() {
   return (
-    <main className="bg-[#0A0A0A] min-h-screen selection:bg-purple-500/30">
-      <div className="relative">
+    <main className="bg-[#0A0A0A] min-h-screen selection:bg-purple-500/30 overflow-x-hidden">
+      <div className="relative overflow-hidden">
         {/* Background Glow Elements for Seamless Blending */}
         <div className="absolute top-[10%] left-[-10%] -z-10 h-[600px] w-[600px] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none" />
         <div className="absolute top-[30%] right-[-10%] -z-10 h-[700px] w-[700px] bg-orange-600/10 blur-[180px] rounded-full pointer-events-none" />
