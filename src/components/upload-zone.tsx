@@ -318,7 +318,7 @@ export function UploadZone({ usage }: UploadZoneProps) {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#0f0f0f] shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl"
+                        className="absolute z-50 mt-2 w-full max-h-[200px] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-[#0f0f0f] shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20"
                       >
                         {INDUSTRIES.map((ind) => (
                           <button

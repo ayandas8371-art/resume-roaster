@@ -52,10 +52,12 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-6 lg:col-span-2">
 
           {/* Upload Card */}
-          <section className="group relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-5 sm:p-8 backdrop-blur-xl transition-all hover:border-orange-500/20">
-            {/* Corner gradient glow */}
-            <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-orange-500/20 blur-[60px] transition-all group-hover:bg-orange-500/30" />
-            <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-purple-600/10 blur-[60px]" />
+          <section className="group relative rounded-3xl border border-white/10 bg-black/40 p-5 sm:p-8 backdrop-blur-xl transition-all hover:border-orange-500/20 z-10">
+            {/* Background wrapper to contain glows without clipping dropdowns */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+              <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-orange-500/20 blur-[60px] transition-all group-hover:bg-orange-500/30" />
+              <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-purple-600/10 blur-[60px]" />
+            </div>
 
             <div className="relative">
               <div className="mb-6 flex items-center justify-between">
