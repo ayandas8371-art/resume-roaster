@@ -1,7 +1,5 @@
-"use client";
-
 import React from "react";
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 interface ShowProps {
   when: "signed-in" | "signed-out";
@@ -10,19 +8,15 @@ interface ShowProps {
 
 /**
  * A modern replacement for SignedIn and SignedOut as requested.
- * Uses useUser hook to determine authentication state.
+ * Updated to use Clerk's native SSR-compatible components to prevent UI flickering.
  */
 export function Show({ when, children }: ShowProps) {
-  const { isSignedIn, isLoaded } = useUser();
-
-  if (!isLoaded) return null;
-
-  if (when === "signed-in" && isSignedIn) {
-    return <>{children}</>;
+  if (when === "signed-in") {
+    return <SignedIn>{children}</SignedIn>;
   }
 
-  if (when === "signed-out" && !isSignedIn) {
-    return <>{children}</>;
+  if (when === "signed-out") {
+    return <SignedOut>{children}</SignedOut>;
   }
 
   return null;
