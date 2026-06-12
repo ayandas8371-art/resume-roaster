@@ -5,16 +5,20 @@ import { ArrowRight, Flame, Sparkles, ShieldCheck, Target, FileText, CheckCircle
 import { SignUpButton } from "@clerk/nextjs";
 import { Show } from "@/components/clerk-show";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Hero() {
   return (
     <section className="relative flex min-h-screen items-center pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-black">
       {/* Fun, High-Energy Background Image Layer */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <Image 
           src="/images/fun-roast-bg-clean.png" 
           alt="Fun Abstract Roast Background" 
-          className="h-full w-full object-cover opacity-80 scale-105"
+          fill
+          priority
+          quality={80}
+          className="object-cover opacity-80 scale-105"
         />
         {/* Protective Gradient Overlay for Text Readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
@@ -65,7 +69,7 @@ export function Hero() {
               <SignUpButton mode="modal">
                 <button className="group relative flex h-14 sm:h-20 items-center justify-center gap-3 overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-600 via-red-600 to-purple-700 px-8 sm:px-12 text-base sm:text-xl font-black text-white transition-all hover:scale-[1.05] active:scale-95 shadow-[0_0_50px_rgba(234,88,12,0.4)]">
                   <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
-                  <img src="/brand/logo.png" alt="Logo" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+                  <Image src="/brand/logo.png" alt="Logo" width={32} height={32} className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
                   Hired or Roasted Free <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:translate-x-1" />
                 </button>
               </SignUpButton>
@@ -75,7 +79,7 @@ export function Hero() {
               <Link href="/dashboard">
                 <button className="group relative flex h-14 sm:h-20 w-full sm:w-auto items-center justify-center gap-3 overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-600 via-red-600 to-purple-700 px-8 sm:px-12 text-base sm:text-xl font-black text-white transition-all hover:scale-[1.05] active:scale-95 shadow-[0_0_50px_rgba(234,88,12,0.4)]">
                   <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
-                  <img src="/brand/logo.png" alt="Logo" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+                  <Image src="/brand/logo.png" alt="Logo" width={32} height={32} className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
                   Go to Dashboard <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:translate-x-1" />
                 </button>
               </Link>
