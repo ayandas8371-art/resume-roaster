@@ -32,6 +32,7 @@ export function UploadZone({ usage }: UploadZoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [role, setRole] = useState("");
   const [industry, setIndustry] = useState("Tech");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -302,16 +303,43 @@ export function UploadZone({ usage }: UploadZoneProps) {
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Industry</label>
                 <div className="relative">
-                  <select
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-white/10 bg-black/40 px-5 py-4 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-black/40 px-5 py-4 text-white hover:border-purple-500/50 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
                   >
-                    {INDUSTRIES.map((ind) => (
-                      <option key={ind} value={ind}>{ind}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <span>{industry}</span>
+                    <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {isDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#0f0f0f] shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl"
+                      >
+                        {INDUSTRIES.map((ind) => (
+                          <button
+                            key={ind}
+                            type="button"
+                            onClick={() => {
+                              setIndustry(ind);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`w-full px-5 py-3 text-left text-sm transition-colors ${
+                              industry === ind 
+                                ? 'bg-purple-500/20 text-purple-400 font-bold border-l-2 border-purple-500' 
+                                : 'text-gray-300 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
+                            }`}
+                          >
+                            {ind}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
