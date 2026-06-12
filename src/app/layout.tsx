@@ -11,6 +11,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { PostHogProvider } from "@/lib/posthog";
 import { RevenueCatProvider } from "@/components/providers/revenuecat-provider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -171,6 +172,7 @@ export default function RootLayout({
           <PostHogProvider>
             <RevenueCatProvider>
               {children}
+              <SpeedInsights />
             </RevenueCatProvider>
           </PostHogProvider>
         </ClerkProvider>
